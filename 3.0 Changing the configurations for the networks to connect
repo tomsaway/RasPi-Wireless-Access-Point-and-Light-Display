@@ -1,0 +1,235 @@
+3.0 Changing the configurations for the networks to connect
+3.1 WPA Supplicant files
+3.1.1 First we need to create and edit a WPA (WiFi Protected Access) Supplicant file for WLAN1. 
+This will allow the Raspberry Pi to connect WLAN1 to an existing network (something already connected to the internet). 
+To do this run:
+  sudo nano /etc/wpa_supplicant/wpa_supplicant-wlan1.conf. .  
+
+3.1.2  This will open a new file, now we need to edit this file by adding credentials of our existing network. Add this to the file:
+
+  ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev 
+  update_config=1 
+  country=NZ 
+  network={ 
+    ssid=”your_existing_network_wifi_ssid” 
+    psk=”your_existing_wifi_password” 
+    key_mgmt=WPA-PSK 
+  }
+
+Press ctrl + x to close, Y to save and hit enter to accept and close.
+
+3.1.3	Next open another file for WLAN0, To open this file run:
+  sudo nano /etc/wpa_supplicant/wpa_supplicant-wlan0.conf . 
+
+3.1.4	In this file we don’t want such specific information as last time. In this file you should add in:
+
+  ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev 
+  update_config=1 
+  country=NZ
+
+Press ctrl + x to close, Y to save and hit enter to accept and close.
+
+3.1.5 next delete the original file so it does not cause confusion with the new files:
+  sudo rm /etc/wpa_supplicant/wpa_supplicant.conf .   
+
+
+3.2 DHCP SERVER INFORMATION
+This part will need to include information which will create interfaces that creates IP addresses for WLAN0 and WLAN1.
+
+3.2.1 	First, open the dhcpcd configuration file to make some changes, run:
+  sudo nano /etc/dhcpcd.conf . 
+
+3.2.2 	Scroll to the end of the page and add the following:
+
+  interface wlan0 
+  static ip_address=192.168.2.254/24 
+  static routers= 
+  static domain_name_servers= 202.37.42.73 
+  static domain_search=
+
+  interface wlan1 
+  static ip_address=10.170.180.150/24 
+  static routers=10.170.180.254 
+  static domain_name_servers=202.37.42.73 
+
+You may need to amend the server address and ip_address to something that works in with your current WiFi settings. 
+Use the server number from step 2.2.3.
+
+Press ctrl + x to close, Y to save and hit enter to accept and close.
+
+
+3.3 Install programs to use
+3.3.1 Firstly, to install HostAPD, run:
+  sudo apt-get install –y hostapd . 
+
+3.3.2 Now install DNSMASQ. Run:
+  sudo apt-get install -y dnsmasq . 
+
+3.3.3 Stop DNSMASQ from running so changes aren’t made while we run the program.
+  sudo systemctl stop dnsmasq. 
+
+3.3.4 Next install iptables, run:
+  sudo apt-get install -y iptables.  
+
+3.3.5 Now install rng-tools. Rng-tools will assist HostAPD to run as it increases entropy.
+  sudo apt-get install rng-tools . 
+
+3.3.6 Finally, to get all these new programs running correctly we need to restart the Raspberry Pi, run:
+  sudo reboot . 
+ 
+3.4 DNSMASQ
+Dnsmasq “provides network infrastructure for small networks: DNS, DHCP, router advertisement and network boot” (Kelley, n.d.).
+3.4.1 The default dnsmasq.conf file has too much information and the program can become confused due to this. 
+It is best to move this original file to another name.
+  sudo mv /etc/dnsmasq.conf /etc/dnsmasq.conf.orig .
+
+3.4.2 Open a new dnsmasq configuration file:
+  sudo nano /etc/dnsmasq.conf . 
+
+3.4.3 	add the following to the end of the page:
+
+  interface=wlan0
+  domain-needed 
+  bogus-priv
+  dhcp-range=192.168.2.1,192.168.2.20,255.255.255.0,24h
+  dhcp-authoritative 
+
+Press ctrl + x to close, Y to save and hit enter to accept and close.
+
+3.4.4 	The DNSMASQ program now needs to be started	
+  sudo systemctl start dnsmasq . 
+
+ 
+3.5 Hostapd
+Hostapd is a “user space daemon for access point and authentication servers. 
+It implements IEEE 802.11 access point management, IEEE 802.1X/WPA/WPA2/EAP Authenticators, RADIUS client, 
+EAP server, and RADIUS authentication server” (Malinen, 2013).
+
+3.5.1	To begin with Hostapd, edit the hostapd configuration file, run:
+  sudo nano /etc/hostapd/hostapd.conf. . 
+
+3.5.2	This will open a blank file, where the new WiFi network is created. Add the following into this file:
+ 
+  interface=wlan0
+  driver=nl80211 
+  hw_mode=g 
+  channel=7 
+  wmm_enabled=0 
+  macaddr_acl=0 
+  auth_algs=1 
+  ignore_broadcast_ssid=0 
+  ht_capab=[HT40][SHORT-GI-20][DSSS_CCK-40] 
+  ieee80211n=1 
+  wpa=2 
+  ssid=Enter_New_Wifi_Name_Here 
+  wpa_passphrase=NewPassWordGoesHere 
+  wpa_key_mgmt=WPA-PSK 
+  wpa_pairwise=TKIP 
+  rsn_pairwise=CCMP 
+
+Press ctrl + x to close, Y to save and hit enter to accept and close.
+
+3.5.3 Sometimes when in headless mode Hostapd does not load in the correct order. 
+To fix this issue Hostapd needs to be delayed. Firstly open a new file:
+  sudo nano /home/pi/startHostapd.sh . 
+
+3.5.4 Add the following information into this file:
+
+  #!/bin/bash  
+  sleep 10s hostapd /etc/hostapd/hostapd.conf > /home/pi/hostapd.log
+
+Press ctrl + x to close, Y to save and hit enter to accept and close.
+
+3.5.5 Now change the permissions
+  sudo chmod +x /home/pi/startHostapd.sh . 
+
+3.5.6 Now get this file to load on start up by editing crontab:
+  crontab –e .  Then enter  2 . 
+
+3.5.7 Add the following line to the bottom of the page:
+  @reboot sudo /home/pi/startHostapd.sh . 
+
+
+3.6 IPTables and IP forwarding
+IPTables are a tool that will tell WLAN0 and WLAN1 how and when to forward internet communications to each other. 
+The following information needs to be entered in the terminal to make these connections. 
+Press enter after entering each instruction below:
+
+3.6.1	
+  sudo sh -c “echo 1 > /proc/sys/net/ipv4/ip_forward” . 
+
+3.6.2
+  sudo iptables -t nat -A POSTROUTING -o wlan1 -j MASQUERADE . 
+
+3.6.3
+  sudo iptables -A FORWARD -i wlan1 -o wlan0 -m state –state RELATED,ESTABLISHED -j ACCEPT 
+
+3.6.4
+  sudo iptables -A FORWARD -i wlan0 -o wlan1 -j ACCEPT . 
+
+3.6.5
+  sudo sh -c “iptables-save > /etc/iptables.ipv4.nat” .  
+
+3.6.6 Edit the /etc/sysctl.conf file to allow IPv4 forwarding:
+  sudo nano /etc/sysctl.conf . 
+
+3.6.7 Now uncomment the line  #net.ipv4.ip_forward=1  it should now look like this:
+  net.ipv4.ip_forward=1 . 
+
+Press ctrl + x to close, Y to save and hit enter to accept and close.
+
+
+3.7 rc.local
+
+3.7.1	So the iptables rules can take effect after rebooting we need to edit the rc.local file. Run:
+  sudo nano /etc/rc.local . 
+
+3.7.2 	Now scroll to the bottom of the page and add this command before on the line above  exit 0 :
+
+  sudo sh -c “echo 1 > /proc/sys/net/ipv4/ip_forward” 
+  sudo iptables-restore < /etc/iptables.ipv4.nat
+
+Press ctrl + x to close, Y to save and hit enter to accept and close.
+
+ 
+3.8 DAEMON
+
+3.8.1 Open and edit the default Hostapd file, run:
+  sudo nano /etc/default/hostapd . 
+
+3.8.2 Remove the  #  from in front of the DAEMON_CONF line and change to:
+  DAEMON_CONF=”etc/hostapd/hostapd.conf” . 
+
+3.8.3 Open and edit the init Hospapd file and run:
+  sudo nano /etc/init.d/hostapd . 
+
+3.8.4 Uncomment DAEMON_CONF line and change to
+  DAEMON_CONF=etc/hostapd/hostapd.conf . 
+
+
+3.90 Reloading and Restarting
+The Raspberry Pi is just about ready to make new internet connections and send out new IP addresses, 
+but first we need to reload and restart some programs:
+
+3.9.1 First reload Daemon:
+  sudo systemctl daemon-reload . 
+
+3.9.2 By default hostapd is masked and disabled so it cannot run without network settings being set by the user. Unmask hostapd:
+  sudo systemctl unmask hostapd . 
+
+3.9.3 	Then enable hostapd to operate at all times:
+  sudo systemctl enable hostapd . 
+
+3.9.4	Now start hostapd so it will be functioning:
+  sudo service hostapd start .
+
+3.9.5 Reboot to disconnect Ethernet and check all is working.
+  sudo halt . 
+
+3.9.6 The Raspberry Pi will now be shutdown. It is now safe to disconnect the Ethernet cable.
+
+3.9.7 Turn the power off and on again to reboot the Raspberry pi, wait until it has fully loaded and then reopen the terminal. 
+Once Raspbian is loaded other devices should now be able to see your new WiFi name is operational.
+
+3.9.8 With another device (i.e. laptop, smart phone, etc) click on the WiFi name in WiFi settings and add the password to connect. 
+The new device should now have internet access!
