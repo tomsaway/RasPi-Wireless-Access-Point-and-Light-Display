@@ -1,0 +1,51 @@
+2.0 Preparation
+For the reader to use these instructions, they will need to have all equipment in section
+“1.3 What you’ll need”, stretch should also be installed and working on the Raspberry Pi.
+If not, another instruction will need to be sourced to get to that point. These next steps
+will set your Raspberry Pi up to ensure the rest of the process will flow nicely. All
+commands are run in the terminal window. These instructions can be done either via ssh
+connection (with Ethernet cable connected) or locally with keyboard and mouse.
+
+
+2.1 WiFi location
+
+2.1.1 Open the Terminal Window. All commands in these instructions should be
+entered into the terminal window. Your input will appear after the ..$. sign at each
+stage.
+
+2.1.2 Before we start we should ensure the Raspberry Pi is up to date. Run:
+sudo apt-get update .
+
+2.1.3 Now we need to access some setting for the Raspberry Pi, run the following from
+the command line:
+sudo raspi-config. .
+
+2.1.4 A blue screen with a grey box will appear as seen below.
+
+2.1.5 Use the up and down keys to move down to highlight and select:
+
+2.1.6 Highlight and select
+
+2.1.7 select your country and click on ok then select finish. The system may need to
+reboot to work correctly. Do this by entering
+sudo reboot. .
+
+
+2.2 Check MAC addresses of WLANs
+There will be two WLANs (Wireless Local Area Network) in use for this project; WLAN0
+and WLAN1.
+• WLAN0 should be the on board WiFi device – this is also sending out a WiFi network.
+• WLAN1 should be the USB connected device – this will connect all devices and the
+raspberry pi to the internet.
+
+2.2.1 To note the MAC address of you internal WiFi device first disconnect the USB
+device and then run:
+ifconfig. .
+The MAC address will be written in hexadecimal and will be displayed next to WLAN0.
+
+2.2.2 Now connect the USB device and repeat the process, Run:
+ifconfig. .
+
+2.2.3 Now we want to identify the initial server the system is running on, to do this run:
+sudo cat /etc/resolv.conf .
+Note your server address as you will need this for step 3.2.2.
