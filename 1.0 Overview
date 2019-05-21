@@ -1,0 +1,31 @@
+1.0 Overview
+1.1 Instruction layout
+
+1.1.1 Wireless Access Point
+The purpose of these instructions is to set up your Raspberry Pi 3B + (on stretch) as a Wireless Access Point (WiFi to WiFi) with optional LED connection display. This access point will send out an internet signal using a WiFi name, allowing devices to connect to allocated IP addresses. These IP addresses will be sent through one WLAN, processed by the Raspberry Pi and then send back out via another WLAN to the original modem.
+
+1.1.2 Blinkt! Internet Monitor
+These instructions are to set up an LED device (we used Blinkt!) on your Raspberry Pi to display whether or not the internet is connected.
+
+1.1.3 Testing
+There are some suggestions later in this part for testing the different components which make up the Wireless Access Point.
+
+
+1.2 Network Diagram
+The diagram below (Almeida, 2012) shows how the network will operate. It displays the Raspberry Pi (in light green) with its internal programs and their functions. It also explains how the different components will interact with each other. 
+
+
+1.3 What you’ll need
+Mouse
+Monitor
+Keyboard
+Ethernet Cable
+Raspberry Pi 3B+
+Blinkt! LED display
+External WiFi device
+HDMI (or similar) cable
+Micro USB cable (for power)
+Internet connection (via modem)
+Flash drive with Raspbian Stretch pre-installed
+
+The image above shows what your Raspberry Pi should look like once it’s all set up.
