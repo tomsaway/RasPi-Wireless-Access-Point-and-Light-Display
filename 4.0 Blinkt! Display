@@ -1,0 +1,94 @@
+4.0 Setting up the Blinkt! WiFi monitor
+These instructions were obtained by Gleeson (2016) and have been amended slightly to
+suit our own needs here. At this point, your Raspberry Pi should be operating as
+Wireless Access Point and other devices have been able to connect to via it, to the
+internet. Now we are going to connect the Blinkt! Phat and tune it to act as a WiFi
+monitor.
+
+
+4.1 Blinkt! Set up
+
+4.1.1 With the Raspberry Pi turned off, attach the Blinkt! LED phat to the GPIO
+breadboard (ensuring curved edge of Blinkt! is face outwards).
+
+4.1.2 Turn on Raspberry Pi, allow to boot.
+
+4.1.3 Download Pimoroni Blinkt! from the internet. Open a new terminal and add the
+following:
+curl https://get.pimoroni.com/blinkt | bash .
+Enter Y or Yes where required to continue the installation.
+
+4.1.4 Once installed, reboot to ensure effectiveness. Run:
+sudo reboot .
+
+
+4.2 Blinkt! Coding
+
+4.2.1 Create a new python file in the Pimoroni/blinkt/examples folder:
+sudo nano /home/pi/Pimoroni/blinkt/examples/inet_monitor.py .
+This is what will control the Blinkt! light display.
+
+4.2.2 Now add the following code into this file:
+#!/usr/bin/env python
+import colorsys
+import signal
+import random
+import socket
+import time
+import sys
+import os
+from blinkt import set_brightness, set_pixel, show
+def signal_handler(signal, frame):
+“””
+This signal handler allows us to background the process
+and send it a simple SIGINT to tell it to exit cleanly
+“””
+sys.exit(0)
+#Start the signal handler for SIGINT
+signal.signal(signal.SIGINT, signal_handler)
+spacing = 360.0 / 16.0
+hue = 0
+set_brightness(0.1)
+hostname = ‘google.com’
+set_pixel (1, 0, 0, 0,)
+show()
+timer = 5 #how often to check for connectivity
+while True:
+#Test for the ability to open socket and resolve DNS.
+print(“trying to connect to google.com”)
+response = os.system(“ping -c 1 “ + hostname)
+#and then check response…
+if response == 0:
+print (“is up!”)
+connectUp = True
+else:
+print (“is down!”)
+connectUp = False
+if connectUp:
+#We have internet, show green lights.
+for i in range(8):
+set_pixel(i, 0, 255, 0)
+else:
+#DNS/internet are down, play the red lights
+for i in range(8):
+set_pixel(i, 255, 0, 0)
+show()
+time.sleep(timer)
+
+Press ctrl + x to close, Y to save and hit enter to accept and close.
+
+
+4.3 Getting Blinkt! code to work automatically
+
+4.3.1 To launch this script on booting the Raspberry Pi open Crontab by entering:
+sudo crontab -e .
+
+4.3.2 Now enter the following line at the bottom of the crontab file:
+Press ctrl + x to close, Y to save and hit enter to accept and close.
+
+4.3.3 Reboot to test:
+sudo reboot .
+
+The raspberry Pi should now reboot, once it commences the reboot the lights should all
+be Red. When the Raspberry Pi finally connects to the internet the Blinkt! LED panel
+should change to Green lights.
