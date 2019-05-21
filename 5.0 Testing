@@ -1,0 +1,53 @@
+5.0 Testing
+
+Use some of the following tools to identify if you have any problems with your
+Raspberry Pi working.
+
+
+5.1 To check the connection
+ifconfig .
+
+
+5.2 To check the wifi devices
+iwconfig .
+
+
+5.3 Test hostapd
+
+5.3.1
+sudo /usr/sbin/hostapd /etc/hostapd/hostapd.conf .
+For more information on errors add -d or -dd at the end of this command
+
+5.3.2 or try
+sudo systemctl status hostapd .
+
+
+5.4 Test dnsmasq
+systemctl status dnsmasq –l .
+For more information on errors add -d or -dd at the end of this command
+
+
+5.5 To view iptables
+sudo iptables –L .
+
+
+5.6 To check dhcpcd
+systemctl status dhcpcd.service .
+For more information on errors add -d or -dd at the end of this command
+
+
+5.7 To check rng-tools
+sudo service rng-tools status .
+
+
+5.8 To check connectivity to an address
+ping 8.8.8.8.
+This is ping the Google domain address. Troubleshoot by pinging other IP addresses.
+Start with IP addresses within the Pi and then move further out (i.e. network router)
+
+
+5.9 To check connectivity to an address
+traceroute 8.8.8.8.
+This command is similar to ‘ping’, but it will show more information by displaying the
+path the packet follows to reach the final IP address. Again, choose any IP address
+needed.
